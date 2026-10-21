@@ -1,0 +1,25 @@
+{
+  "repo_name": "bsa-game",
+  "site": "NSW Biodiversity Stewardship Agreement (BSA) Simulator",
+  "source_path": "/home/leith/AI/BSA_Game",
+  "source_sha": "84363cfd04097cbe00056b41e84ba45ef2668225",
+  "generated_at": "2026-10-22T09:51:30Z",
+  "generator": "hermes-agent code-wiki skill v0.1.0",
+  "shape": "full (game app with modular state, 3D software engine & UI)",
+  "modules_documented": [
+    "modules/campaign-state.md",
+    "modules/market-engine.md",
+    "modules/crisis-manager.md",
+    "modules/software-renderer.md",
+    "modules/paddock-world.md",
+    "modules/office-desk-ui.md",
+    "modules/minigames-ui.md"
+  ],
+  "pages": [
+    "README.md",
+    "architecture.md",
+    "getting-started.md",
+    "diagrams/class-diagram.md",
+    "diagrams/sequences.md"
+  ]
+}

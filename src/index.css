@@ -1,0 +1,73 @@
+/* Custom styles for BSA Stewardship Simulator */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#game-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+#game-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  outline: none;
+}
+
+/* Tool button styling */
+.tool-btn {
+  background: rgba(28, 25, 23, 0.85);
+  border-color: rgba(87, 83, 78, 0.6);
+  cursor: pointer;
+}
+
+.tool-btn:hover {
+  border-color: rgba(217, 119, 6, 0.8);
+  background: rgba(41, 37, 36, 0.95);
+}
+
+.tool-btn.active {
+  border-color: #f59e0b;
+  background: rgba(69, 26, 3, 0.5);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+  opacity: 1 !important;
+}
+
+/* Photo flash animation */
+@keyframes photo-flash {
+  0% { opacity: 0; }
+  20% { opacity: 0.95; }
+  100% { opacity: 0; }
+}
+
+.camera-flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  pointer-events: none;
+  z-index: 100;
+  animation: photo-flash 0.35s ease-out forwards;
+}
+
+/* Screen shake */
+@keyframes chop-shake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 3px); }
+  50% { transform: translate(2px, -2px); }
+  75% { transform: translate(-1px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+.screen-shake {
+  animation: chop-shake 0.15s ease-in-out;
+}

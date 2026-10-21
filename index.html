@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stewardship Duty - NSW BCT Paddock Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/src/index.css?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Special+Elite&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    .font-mono-tech { font-family: 'Share Tech Mono', monospace; }
+    .font-typewriter { font-family: 'Special Elite', cursive, serif; }
+    .font-sans-ui { font-family: 'Inter', sans-serif; }
+    .hidden { display: none !important; }
+  </style>
+  <script>
+    window.enterPaddockNow = function(ev) {
+      if (ev) ev.stopPropagation();
+      var blocker = document.getElementById('blocker');
+      if (blocker) {
+        blocker.classList.add('hidden');
+        blocker.style.display = 'none';
+      }
+      if (window.__bsaGameInstance && typeof window.__bsaGameInstance.startFromUI === 'function') {
+        window.__bsaGameInstance.startFromUI();
+      }
+    };
+  </script>
+</head>
+<body class="bg-stone-900 text-stone-100 overflow-hidden select-none font-sans-ui">
+  <!-- 3D Canvas Container -->
+  <div id="game-container" class="absolute inset-0 w-full h-full"></div>
+
+  <!-- Reticle / Crosshair -->
+  <div id="crosshair" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center justify-center transition-all">
+    <div class="w-2.5 h-2.5 rounded-full border border-white/80 bg-white/20"></div>
+    <div id="crosshair-interaction" class="absolute -bottom-8 px-2 py-0.5 bg-black/75 border border-amber-500/60 text-amber-300 font-mono-tech text-xs rounded opacity-0 transition-opacity whitespace-nowrap">
+      [L-CLICK] INTERACT
+    </div>
+  </div>
+
+  <!-- Notification Banner -->
+  <div id="notification-box" class="fixed top-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-300 opacity-0 transform -translate-y-4">
+    <div class="px-5 py-2.5 bg-stone-950/90 border-2 border-emerald-500/80 rounded-lg shadow-xl shadow-black/50 text-emerald-300 font-mono-tech text-sm tracking-wide flex items-center gap-3">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span id="notification-text">Notification message here</span>
+    </div>
+  </div>
+
+  <!-- Top HUD Bar -->
+  <div id="top-hud" class="fixed top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none">
+    <!-- Paddock & Property Info -->
+    <div class="bg-stone-950/80 border border-stone-700/70 backdrop-blur-md rounded-lg p-3 text-xs font-mono-tech shadow-lg pointer-events-auto flex flex-col gap-1">
+      <div class="text-amber-400 font-bold tracking-wider flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+        BSA #2026-NW-042 | "IRONBARK RIDGE"
+      </div>
+      <div class="text-stone-300">Lot 4 // DP 754329 (BCT Stewardship Zone)</div>
+      <div class="flex items-center gap-3 text-stone-400 mt-1 pt-1 border-t border-stone-800">
+        <span id="hud-gps">GPS: 30°12'44"S 150°18'22"E</span>
+        <span id="hud-bearing" class="text-amber-300/90">HDG: 045° NE</span>
+      </div>
+    </div>
+
+    <!-- Stewardship Season Countdown & Audit Status -->
+    <div class="flex items-center gap-3 pointer-events-auto">
+      <div class="bg-stone-950/80 border border-stone-700/70 backdrop-blur-md rounded-lg px-4 py-2 text-right shadow-lg">
+        <div class="text-[10px] text-stone-400 font-mono-tech uppercase tracking-widest">ANNUAL AUDIT DEADLINE</div>
+        <div id="hud-timer" class="font-mono-tech text-lg text-amber-400 font-bold">03:45</div>
+        <div class="text-[10px] text-stone-400 font-mono-tech">ANNUAL PAYMENT: <span class="text-emerald-400 font-bold">$48,250</span></div>
+      </div>
+
+      <!-- Office Desk & BCT Plan Buttons -->
+      <div class="flex items-center gap-2 pointer-events-auto">
+        <button id="btn-toggle-office" class="bg-emerald-700 hover:bg-emerald-600 text-stone-100 font-bold px-3.5 py-3 rounded-lg shadow-lg transition-all font-mono-tech text-xs tracking-wider flex items-center gap-1.5 border border-emerald-500">
+          💼 BOS OFFICE &amp; CREDITS [O]
+        </button>
+
+        <button id="btn-toggle-clipboard" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3.5 py-3 rounded-lg shadow-lg hover:shadow-amber-600/30 transition-all font-mono-tech text-xs tracking-wider flex items-center gap-1.5 border border-amber-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+          BCT PLAN [TAB]
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom HUD: Toolbelt & Controls Info -->
+  <div id="bottom-hud" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none">
+    <!-- Quick Controls Reminder -->
+    <div class="text-[11px] font-mono-tech text-stone-300 bg-stone-950/80 px-3 py-1 rounded backdrop-blur border border-stone-700 pointer-events-auto flex items-center gap-3">
+      <span><strong>WALK:</strong> W/A/S/D or ↑/↓ | <strong>TURN:</strong> Mouse Drag or ←/→/Q/E | <strong>USE TOOL:</strong> Left-Click Target or Click Tool Below | <strong>PLAN:</strong> Tab</span>
+    </div>
+
+    <!-- On-Screen Quick Walk/Turn/Action Bar (for testing or mouse-only play) -->
+    <div class="flex items-center gap-1.5 bg-stone-950/85 px-3 py-1.5 rounded-lg border border-stone-700/80 pointer-events-auto text-xs font-mono-tech">
+      <button type="button" data-move="left" class="move-btn px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-amber-300 rounded border border-stone-600">⟲ Turn L</button>
+      <button type="button" data-move="forward" class="move-btn px-3 py-1 bg-stone-800 hover:bg-stone-700 text-emerald-300 font-bold rounded border border-stone-600">▲ Walk Fwd</button>
+      <button type="button" data-move="back" class="move-btn px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-600">▼ Back</button>
+      <button type="button" data-move="right" class="move-btn px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-amber-300 rounded border border-stone-600">⟳ Turn R</button>
+      <button type="button" id="btn-use-active-tool" class="ml-2 px-3 py-1 bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold rounded border border-amber-400">⚡ USE ACTIVE TOOL</button>
+    </div>
+
+    <!-- Active Toolbelt Slots -->
+    <div class="flex items-center gap-2 bg-stone-950/85 p-2 rounded-xl border border-stone-700/80 backdrop-blur-md shadow-2xl pointer-events-auto">
+      <!-- Tool 1: Mattock / Hoe -->
+      <button data-tool="mattock" class="tool-btn active flex items-center gap-3 px-3.5 py-2 rounded-lg border text-left transition-all">
+        <span class="w-5 h-5 rounded bg-amber-500/20 text-amber-400 font-mono-tech text-xs font-bold flex items-center justify-center border border-amber-500/40">1</span>
+        <div>
+          <div class="text-xs font-bold text-stone-100">Mattock / Chip Hoe</div>
+          <div class="text-[10px] text-stone-400 font-mono-tech">Weed Eradication</div>
+        </div>
+      </button>
+
+      <!-- Tool 2: Knapsack Sprayer -->
+      <button data-tool="knapsack" class="tool-btn flex items-center gap-3 px-3.5 py-2 rounded-lg border text-left transition-all opacity-60">
+        <span class="w-5 h-5 rounded bg-stone-800 text-stone-400 font-mono-tech text-xs font-bold flex items-center justify-center border border-stone-700">2</span>
+        <div>
+          <div class="text-xs font-bold text-stone-100">Knapsack Sprayer</div>
+          <div class="text-[10px] text-stone-400 font-mono-tech">Spot Spray (Glyphosate)</div>
+        </div>
+      </button>
+
+      <!-- Tool 3: Feral Pig Corn Bait -->
+      <button data-tool="bait" class="tool-btn flex items-center gap-3 px-3.5 py-2 rounded-lg border text-left transition-all opacity-60">
+        <span class="w-5 h-5 rounded bg-stone-800 text-stone-400 font-mono-tech text-xs font-bold flex items-center justify-center border border-stone-700">3</span>
+        <div>
+          <div class="text-xs font-bold text-stone-100">Fermented Corn</div>
+          <div class="text-[10px] text-stone-400 font-mono-tech">Bait Pig Box Trap</div>
+        </div>
+      </button>
+
+      <!-- Tool 4: GPS & Camera -->
+      <button data-tool="camera" class="tool-btn flex items-center gap-3 px-3.5 py-2 rounded-lg border text-left transition-all opacity-60">
+        <span class="w-5 h-5 rounded bg-stone-800 text-stone-400 font-mono-tech text-xs font-bold flex items-center justify-center border border-stone-700">4</span>
+        <div>
+          <div class="text-xs font-bold text-stone-100">Monitoring Camera</div>
+          <div class="text-[10px] text-stone-400 font-mono-tech">Photo-Point Records</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Camera Viewfinder Overlay (Shown when Tool 4 is active) -->
+  <div id="camera-overlay" class="fixed inset-0 pointer-events-none z-10 hidden border-[16px] border-black/40">
+    <div class="w-full h-full border border-white/30 relative flex flex-col justify-between p-6">
+      <div class="flex justify-between items-start font-mono-tech text-xs text-white/80">
+        <div class="bg-black/60 px-3 py-1.5 rounded border border-white/20">
+          <div>MONITORING MODE: PHOTO-POINT AUDIT</div>
+          <div id="cam-coords">COORD: 30°12'44.2"S 150°18'22.1"E</div>
+        </div>
+        <div class="bg-black/60 px-3 py-1.5 rounded border border-white/20 text-right">
+          <div class="text-red-400 flex items-center gap-2 justify-end">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> REC STANDBY
+          </div>
+          <div id="cam-bearing">BEARING: 045° TRUE NORTH</div>
+        </div>
+      </div>
+      <!-- Center framing brackets -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-48 border border-white/40 flex items-center justify-center">
+        <div class="w-4 h-4 border-t-2 border-l-2 border-amber-400 absolute top-0 left-0"></div>
+        <div class="w-4 h-4 border-t-2 border-r-2 border-amber-400 absolute top-0 right-0"></div>
+        <div class="w-4 h-4 border-b-2 border-l-2 border-amber-400 absolute bottom-0 left-0"></div>
+        <div class="w-4 h-4 border-b-2 border-r-2 border-amber-400 absolute bottom-0 right-0"></div>
+        <div class="text-[10px] font-mono-tech text-white/50 text-center uppercase tracking-widest">
+          Align Star Picket Tag Inside Frame
+        </div>
+      </div>
+      <div class="text-center font-mono-tech text-xs text-white/70 bg-black/60 py-1 px-4 self-center rounded border border-white/20">
+        LEFT CLICK TO CAPTURE PERMANENT PHOTOLOG
+      </div>
+    </div>
+  </div>
+
+  <!-- Start / Click-to-Play Modal Screen -->
+  <div id="blocker" onclick="window.enterPaddockNow(event)" class="fixed inset-0 z-50 bg-stone-950/90 backdrop-blur-md flex items-center justify-center cursor-pointer">
+    <div class="max-w-xl w-full bg-stone-900 border-2 border-amber-600/70 rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl"></div>
+      
+      <div class="inline-block px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full text-amber-400 font-mono-tech text-xs tracking-widest uppercase mb-4">
+        NSW Biodiversity Conservation Trust Simulator
+      </div>
+
+      <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">STEWARDSHIP DUTY</h1>
+      <p class="text-stone-300 text-sm mb-6 leading-relaxed">
+        You are the registered landholder for <strong>BSA #2026-NW-042</strong>. Before the BCT Compliance Inspector conducts their annual audit, you must complete your required management actions:
+      </p>
+
+      <div class="bg-stone-950/80 border border-stone-800 rounded-xl p-4 text-left font-mono-tech text-xs space-y-2 mb-6">
+        <div class="flex items-center gap-2 text-stone-300">
+          <span class="text-amber-400 font-bold">1. WEEDS:</span> Chip or spray African Boxthorn & Coolatai grass (6 clumps).
+        </div>
+        <div class="flex items-center gap-2 text-stone-300">
+          <span class="text-amber-400 font-bold">2. PIGS:</span> Locate the mesh cage trap in the creek line and bait with corn.
+        </div>
+        <div class="flex items-center gap-2 text-stone-300">
+          <span class="text-amber-400 font-bold">3. PHOTO-POINTS:</span> Stand at the star pickets (PP-01 & PP-02) and record photologs.
+        </div>
+        <div class="flex items-center gap-2 text-rose-400 font-semibold border-t border-stone-800 pt-2">
+          <span>⚠️ WARNING:</span> The BCT Inspector is parked at the front gate. Failing audit thresholds triggers formal remediation orders and payment forfeiture!
+        </div>
+      </div>
+
+      <button id="btn-start" type="button" onclick="window.enterPaddockNow(event)" class="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-extrabold rounded-xl shadow-lg shadow-amber-600/30 transition-all font-mono-tech tracking-wider text-sm cursor-pointer">
+        ENTER PADDOCK & LOCK CONTROLS
+      </button>
+      <div class="mt-3 text-[11px] text-stone-400 font-mono-tech">Click anywhere on screen to resume FPS control</div>
+    </div>
+  </div>
+
+  <!-- The Landholder Clipboard (BCT Plan Tab Modal) -->
+  <div id="clipboard-modal" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden">
+    <div class="relative w-full max-w-2xl bg-[#f5efe6] text-stone-900 rounded-lg shadow-2xl p-8 border-4 border-[#3c2a1e] font-sans-ui overflow-hidden">
+      <!-- Clipboard Clip Graphic Header -->
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-stone-700 rounded-b-lg border-x-2 border-b-2 border-stone-900 shadow-md flex items-center justify-center">
+        <div class="w-12 h-2 rounded bg-stone-400"></div>
+      </div>
+
+      <!-- Watermark / BCT Seal -->
+      <div class="border-b-2 border-stone-400 pb-3 mb-5 mt-2 flex justify-between items-end">
+        <div>
+          <div class="text-xs uppercase tracking-widest font-bold text-stone-700">NSW Biodiversity Conservation Trust</div>
+          <div class="text-xl font-black tracking-tight text-[#1b3d2f]">BIODIVERSITY STEWARDSHIP AGREEMENT</div>
+          <div class="text-[11px] text-stone-600 font-mono-tech">Agreement No: BSA-2026-NW-042 | Paddock: River Gum Flats (Zone 1)</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[11px] uppercase text-stone-500 font-bold">Annual Cycle</div>
+          <div class="text-sm font-extrabold text-stone-800">Year 3 of 20</div>
+        </div>
+      </div>
+
+      <!-- Checklist & Live Score -->
+      <div class="space-y-4 mb-6">
+        <div class="text-xs uppercase tracking-wider font-extrabold text-stone-700 border-b border-stone-300 pb-1">
+          Schedule 3: Mandatory Annual Management Action Targets
+        </div>
+
+        <!-- Task 1: Weeds -->
+        <div class="flex items-center justify-between p-3 bg-white/70 rounded border border-stone-300">
+          <div>
+            <div class="font-bold text-sm text-stone-900">Eradicate Declared Priority Weeds</div>
+            <div class="text-xs text-stone-600">African Boxthorn &amp; Coolatai Grass threshold (&lt; 5% cover)</div>
+          </div>
+          <div class="text-right font-mono-tech">
+            <span id="clip-weeds-status" class="inline-block px-2.5 py-1 rounded text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+              0 / 6 Cleared
+            </span>
+          </div>
+        </div>
+
+        <!-- Task 2: Pig Trap -->
+        <div class="flex items-center justify-between p-3 bg-white/70 rounded border border-stone-300">
+          <div>
+            <div class="font-bold text-sm text-stone-900">Feral Pest Suppression (Sus scrofa)</div>
+            <div class="text-xs text-stone-600">Creek drainage line silo mesh cage trap baited & operational</div>
+          </div>
+          <div class="text-right font-mono-tech">
+            <span id="clip-trap-status" class="inline-block px-2.5 py-1 rounded text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+              Unbaited
+            </span>
+          </div>
+        </div>
+
+        <!-- Task 3: Photo Points -->
+        <div class="flex items-center justify-between p-3 bg-white/70 rounded border border-stone-300">
+          <div>
+            <div class="font-bold text-sm text-stone-900">Permanent Photopoint Monitoring</div>
+            <div class="text-xs text-stone-600">Timestamped photologs from tagged pickets PP-01 and PP-02</div>
+          </div>
+          <div class="text-right font-mono-tech">
+            <span id="clip-photos-status" class="inline-block px-2.5 py-1 rounded text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+              0 / 2 Captured
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial / Action Footer -->
+      <div class="p-4 bg-stone-200/80 rounded border border-stone-300 flex justify-between items-center mb-6">
+        <div>
+          <div class="text-xs text-stone-600 uppercase font-semibold">Scheduled Trust Payment</div>
+          <div class="text-2xl font-black text-emerald-800 font-mono-tech">$48,250.00 AUD</div>
+          <div class="text-[10px] text-stone-500">Conditioned on 100% satisfactory compliance report</div>
+        </div>
+
+        <button id="btn-call-audit" class="px-5 py-3 bg-[#1b3d2f] hover:bg-[#122a20] text-amber-200 font-bold font-mono-tech text-xs tracking-wider rounded border border-emerald-900 shadow transition-all">
+          LODGE REPORT & CALL AUDIT NOW
+        </button>
+      </div>
+
+      <div class="flex justify-between items-center text-xs text-stone-600 font-mono-tech">
+        <span>Press <kbd class="px-1.5 py-0.5 bg-stone-300 rounded text-stone-800">TAB</kbd> or click button to close</span>
+        <button id="btn-close-clipboard" class="text-stone-700 hover:text-stone-950 font-bold underline">
+          Return to Paddock
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- The BCT Regulator Audit Outcome Modal -->
+  <div id="audit-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center hidden p-4">
+    <div class="relative w-full max-w-2xl bg-[#faf6ee] text-stone-900 rounded-xl shadow-2xl p-8 border-4 border-stone-900 font-typewriter max-h-[90vh] overflow-y-auto">
+      <!-- Official Header -->
+      <div class="border-b-2 border-stone-800 pb-4 mb-4 text-center">
+        <div class="text-xs uppercase tracking-widest text-stone-600 font-bold">NSW Department of Climate Change, Energy, the Environment and Water</div>
+        <div class="text-lg font-bold tracking-tight text-stone-900">BIODIVERSITY CONSERVATION TRUST — COMPLIANCE DIVISION</div>
+        <div class="text-xs text-stone-700 mt-1">OFFICIAL NOTICE OF ANNUAL STEWARDSHIP AUDIT DETERMINATION</div>
+      </div>
+
+      <!-- Reference Details -->
+      <div class="grid grid-cols-2 text-xs border border-stone-400 p-2.5 mb-4 bg-white/60">
+        <div><strong>AGREEMENT:</strong> BSA #2026-NW-042</div>
+        <div><strong>INSPECTOR:</strong> M. Henderson (Senior Compliance)</div>
+        <div><strong>DATE:</strong> 20 October 2026</div>
+        <div><strong>VEHICLE:</strong> NSW Govt HiLux (Fleet #409)</div>
+      </div>
+
+      <!-- Determination Banner -->
+      <div id="audit-banner" class="p-4 text-center rounded-lg border-2 mb-4 font-sans-ui">
+        <div id="audit-verdict-title" class="text-2xl font-black uppercase tracking-wide">COMPLIANCE DETERMINATION</div>
+        <div id="audit-verdict-subtitle" class="text-sm font-semibold mt-1">Sub-heading here</div>
+      </div>
+
+      <!-- Detailed Breakdown -->
+      <div class="space-y-3 text-xs mb-5">
+        <div class="font-bold uppercase tracking-wider text-stone-800 border-b border-stone-400 pb-1">
+          Inspector's Field Observations:
+        </div>
+        <div id="audit-findings-list" class="space-y-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Financial Resolution Notice -->
+      <div id="audit-financial-box" class="p-4 rounded border-2 mb-6 font-mono-tech text-xs">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Actions / Next Steps -->
+      <div class="flex items-center justify-between font-sans-ui pt-2 border-t border-stone-400">
+        <div class="text-[11px] text-stone-500 font-mono-tech">BCT Regulatory Record #REG-2026-8911</div>
+        <button id="btn-audit-next" class="px-6 py-3 bg-stone-900 hover:bg-stone-800 text-amber-300 font-bold font-mono-tech text-xs tracking-wider rounded shadow transition-all">
+          NEXT SEASON / TRY AGAIN
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js?v=6"></script>
+</body>
+</html>
